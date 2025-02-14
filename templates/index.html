@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Automated Conference Decision-Making Systems</title>
+<!--    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">-->
+</head>
+<body>
+    <h1>Automated Conference Decision-Making Systems</h1>
+
+    <input type="file" id="fileInput" name="file">
+    <button onclick="uploadFile()">Upload File</button>
+    <div id="fileStatus"></div>
+
+    <select id="llmSelect">
+        <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+        <option value="gemini-1.5-flash-8b">gemini-1.5-flash-8b</option>
+        <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+        <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+        <option value="gemini-2.0-flash-lite-preview-02-05">gemini-2.0-flash-lite-preview-02-05</option>
+    </select>
+    <button onclick="setLLM()">Set LLM</button>
+    <div id="llmStatus"></div>
+
+    <input type="text" id="apiKeyInput" placeholder="Enter API Key">
+    <button onclick="setAPIKey()">Set API Key</button>
+    <div id="apiKeyStatus"></div>
+
+    <button onclick="processData()">Start Analysis</button>
+    <div id="processingStatus"></div>
+
+<!--    <button onclick="refineData()">Refine Sessions</button>-->
+<!--    <div id="refineStatus"></div>-->
+
+<!--    <textarea id="terminal" rows="10" cols="80"></textarea>-->
+
+    <script>
+        function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/upload_file', { method: 'POST', body: formData })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('fileStatus').textContent = data.message;
+                });
+        }
+        function setLLM() {
+            const llm = document.getElementById('llmSelect').value;
+            fetch('/set_llm', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'llm=' + llm
+            })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('llmStatus').textContent = data.message;
+                });
+        }
+        function setAPIKey() {
+            const apiKey = document.getElementById('apiKeyInput').value;
+            fetch('/set_api_key', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'api_key=' + apiKey
+            })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('apiKeyStatus').textContent = data.message;
+                });
+        }
+
+        function processData() {
+            fetch('/process', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('processingStatus').textContent = data.message;
+                    // You might want to update the terminal here with data.output
+                });
+        }
+<!--        function refineData() {-->
+<!--            fetch('/refine', { method: 'POST' })-->
+<!--                .then(response => response.json())-->
+<!--                .then(data => {-->
+<!--                    document.getElementById('refineStatus').textContent = data.message;-->
+<!--                });-->
+<!--        }-->
+
+    </script>
+</body>
+</html>
