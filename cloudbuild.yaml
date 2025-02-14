@@ -4,8 +4,8 @@ steps:
 
 images: ['gcr.io/$PROJECT_ID/flask-app:$SHORT_SHA']
 
+serviceAccount: 'projects/project-test-445208/serviceAccounts/abstractcategorizationweb@project-test-445208.iam.gserviceaccount.com'
 options:
-  serviceAccount: 'projects/project-test-445208/serviceAccounts/abstractcategorizationweb@project-test-445208.iam.gserviceaccount.com'
   logging: CLOUD_LOGGING_ONLY
 #    cloudLogging: 'REGIONAL_USER_OWNED_BUCKET'
   machineType: 'E2_MEDIUM'
