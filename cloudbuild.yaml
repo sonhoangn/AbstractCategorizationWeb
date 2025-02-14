@@ -1,4 +1,13 @@
 steps:
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'gcr.io/$PROJECT_ID/flask-app:$SHORT_SHA', '.']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/flask-app:$SHORT_SHA', '.']
+
 images: ['gcr.io/$PROJECT_ID/flask-app:$SHORT_SHA']
+
+options:
+  serviceAccount: 'projects/project-test-445208/serviceAccounts/abstractcategorizationweb@project-test-445208.iam.gserviceaccount.com'
+  logging: CLOUD_LOGGING_ONLY
+#    cloudLogging: 'REGIONAL_USER_OWNED_BUCKET'
+  machineType: 'e2-medium'
+  diskSizeGb: 5
+  timeout: '600s'
