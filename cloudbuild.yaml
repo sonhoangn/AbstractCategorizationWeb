@@ -6,7 +6,7 @@ images: ['gcr.io/$PROJECT_ID/flask-app:$SHORT_SHA']
 
 serviceAccount: 'projects/project-test-445208/serviceAccounts/abstractcategorizationweb@project-test-445208.iam.gserviceaccount.com'
 
-timeout: '600s'
+timeout: '1800s'
 
 options:
   logging: CLOUD_LOGGING_ONLY
