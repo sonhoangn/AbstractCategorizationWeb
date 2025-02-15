@@ -7,6 +7,7 @@ from pathlib import Path
 import traceback
 import google.generativeai as genai
 import pandas as pd
+from concurrent.futures import ThreadPoolExecutor
 
 # Define output path and check whether output path already existed in the target directory
 RESULTS_PATH = Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "results")))
@@ -210,30 +211,20 @@ def input_from_spreadsheet(file_path, model, llm_selection):
         print(f"{ct()} - Unable to locate abstracts list.\n")
         return None
     # Start prompting for each abstract
-    for index, row in df.iterrows():
-        abstract = row["Abstract"]
-        # If abstract exists, continue prompting with genai
-        try:
-            overall_category, research_field, research_method, scope, purpose, forecasted_time, prompt_tokens, response_tokens = categorize_abstract(
-                index, abstract, model)
-            if llm_selection == "gemini-1.5-pro":
-                time.sleep(20)
-            else:
-                time.sleep(6)
-            results.append((index, abstract, overall_category, research_field, research_method, scope, purpose, forecasted_time, prompt_tokens, response_tokens))
-            # Print progress message every 10 abstracts
-            if (index + 1) % 10 == 0:
-                print(f"{ct()} - No. of abstracts processed: {index + 1}\n")
-            # Include a delay between prompt request
-            if llm_selection == "gemini-1.5-pro":
-                time.sleep(20)
-            else:
-                time.sleep(6)
-        # Define exception
-        except Exception as e:
-            print(f"{ct()} - Error processing abstract {index + 1}: {e}\n")
-            results.append((index, abstract, "Error", "Error", "Error", "Error", "Error", "Error", 0, 0))
-    # Calculate and print total processing time
+    with ThreadPoolExecutor(max_workers=4) as executor:  # Adjust max_workers as needed
+        futures = [executor.submit(categorize_abstract, index, abstract, model) for index, abstract in df.iterrows()]
+
+        for future, (index, abstract) in zip(futures, df.iterrows()):
+            try:
+                overall_category, research_field, research_method, scope, purpose, forecasted_time, prompt_tokens, response_tokens = future.result()
+                results.append((index, abstract, overall_category, research_field, research_method, scope, purpose,
+                                forecasted_time, prompt_tokens, response_tokens))
+                if (index + 1) % 10 == 0:
+                    print(f"{ct()} - No. of abstracts processed: {index + 1}\n")
+            except Exception as e:
+                print(f"{ct()} - Error processing abstract {index + 1}: {e}\n")
+                results.append((index, abstract, "Error", "Error", "Error", "Error", "Error", "Error", 0, 0))
+
     print(f"{ct()} - All {index + 1} abstracts processed in {(time.time() - start_time):.2f} seconds.\n")
     # Create a Data frame with results
     df_results = pd.DataFrame(results, columns=["No.", "Abstract", "Overall Category", "Topic", "Research methods", "Scope", "Research Purpose", "Forecasted Presentation Duration", "Prompt token count", "Response token count"])
