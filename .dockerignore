@@ -1,0 +1,10 @@
+.venv
+.git
+__pycache__
+*.pyc
+*.DS_Store
+tests/
+*.log
+.vscode/
+.idea/
+node_modules
