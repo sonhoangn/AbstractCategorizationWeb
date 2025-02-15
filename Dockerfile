@@ -4,6 +4,15 @@ WORKDIR /app
 
 # Install build tool
 RUN apt-get update && apt-get install -y \
+    libopenblas-dev \
+    liblapack-dev \
+    gcc \
+    gfortran \
+    tk \
+    libxext6 \
+    libxtst6 \
+    xauth \
+    xvfb \
     build-essential \
     libgtk-3-dev \
     libgl1-mesa-dev \
