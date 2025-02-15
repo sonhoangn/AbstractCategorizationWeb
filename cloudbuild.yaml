@@ -29,4 +29,4 @@ timeout: '1800s'
 options:
   logging: CLOUD_LOGGING_ONLY
   machineType: 'E2_MEDIUM'
-  diskSizeGb: 5
+  diskSizeGb: 5-
