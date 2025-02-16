@@ -359,7 +359,7 @@ def main(file_path, llm_selection, API_KEY):
                 return
 
             # Write temporary results to spreadsheet
-            new_df_path = write_to_excel(df_r, file_path, llm_selection)
+            new_df_path = write_to_excel(df_r, llm_selection)
             print(f"{ct()} - new_df_path: {new_df_path}.\n")
             new_df = pd.read_excel(new_df_path)
             print(f"{ct()} - new_df_path read successfully. Shape: {new_df.shape}.\n")
@@ -367,7 +367,7 @@ def main(file_path, llm_selection, API_KEY):
             df1 = adjust_session_numbers(new_df)
             df1["Session No."] = df1[['Adjusted Session No.']]
             final_df = df1.sort_values('Session No.')
-            final_df_path = write_to_excel_display(final_df, file_path, llm_selection)
+            final_df_path = write_to_excel_display(final_df, llm_selection)
             print(f"{ct()} - Final results save to {final_df_path}\n")
             return
 
