@@ -1,8 +1,7 @@
 import os
-
 from flask import Flask, request, jsonify, render_template, send_file, render_template_string
 import io
-import panda as pd
+import pandas as pd
 import Main_Functions
 import traceback
 import google.generativeai as genai
