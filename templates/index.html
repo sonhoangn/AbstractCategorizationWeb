@@ -28,6 +28,13 @@
     <button onclick="processData()">Start Analysis</button>
     <div id="processingStatus"></div>
 
+    <div id="downloadLink" style="display: none;">
+        <form action="/download" method="POST">
+            <input type="hidden" name="file_path" id="file_path_input">
+            <button type="submit">Download Excel File</button>
+        </form>
+    </div>
+
 <!--    <button onclick="refineData()">Refine Sessions</button>-->
 <!--    <div id="refineStatus"></div>-->
 
@@ -76,7 +83,13 @@
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('processingStatus').textContent = data.message;
-                    // You might want to update the terminal here with data.output
+                    if (data.status === 'success') {
+                        document.getElementById('file_path_input').value = data.file_path; // Set the file path in the hidden input
+                        document.getElementById('downloadLink').style.display = 'block';
+                    } else {
+                        // Handle errors, e.g., display an error message
+                        document.getElementById('processingStatus').textContent = data.message;
+                    }
                 });
         }
 <!--        function refineData() {-->

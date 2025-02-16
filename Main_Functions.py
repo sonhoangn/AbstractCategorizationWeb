@@ -274,17 +274,17 @@ def unexpected_characters(text):
 def browser_display(df_final, llm):
     print(f"{ct()} - Converting result spreadsheet to readable html format.\n")
     html_table = unexpected_characters(df_final).to_html(index=False)
-
-    output_path = RESULTS_PATH / f"Sessions_schedule_{llm}.html"
-
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write(html_table)
-
-    try:
-        webbrowser.open(output_path)
-        print(f"{ct()} - DataFrame displayed in browser: {output_path}\n")
-    except Exception as e:
-        print(f"{ct()} - Error opening HTML file in browser: {e}\n")
+    return html_table
+    # output_path = RESULTS_PATH / f"Sessions_schedule_{llm}.html"
+    #
+    # with open(output_path, "w", encoding="utf-8") as f:
+    #     f.write(html_table)
+    #
+    # try:
+    #     webbrowser.open(output_path)
+    #     print(f"{ct()} - DataFrame displayed in browser: {output_path}\n")
+    # except Exception as e:
+    #     print(f"{ct()} - Error opening HTML file in browser: {e}\n")
 
 def main(file_path, llm_selection, API_KEY):
     print(f"{ct()} - Working Directory (Main_Functions): {os.getcwd()}!\n")
