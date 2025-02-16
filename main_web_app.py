@@ -76,41 +76,44 @@ def process_data():
         final_df = df1.sort_values('Session No.')
 
         html_content = Main_Functions.browser_display(final_df, llm_selection)  # Get HTML string
-        return render_template_string(html_content)
+        # return render_template_string(html_content)
+        return jsonify({'message': 'Processing complete', 'file_path': file_path, 'llm_selection': llm_selection, 'status': 'success'}), 200
     except Exception as e:
         traceback.print_exc()  # Print the full traceback to the logs
         print(f"Error in /process: {e}")  # Additional logging
         return jsonify({'error': str(e)}), 500  # Return the error in JSON format
 
-@app.route('/download', methods=['POST'])  # Use POST for sending file path in body
+@app.route('/download', methods=['POST'])
 def download_file():
     try:
-        file_path = request.form.get('file_path') # Get file path from POST request body
-        if not file_path:
-            return jsonify({'error': 'No file path provided'}), 400
+        file_path = request.form.get('file_path')  # Get file path from POST request
+        llm_selection = request.form.get('llm_selection')  # Get LLM selection
+        if not file_path or not llm_selection:
+            return jsonify({'error': 'Missing file path or LLM selection'}), 400
 
-        # Load the Excel file
+        # Load data, process it (same as in /process, but without rendering HTML)
         df = pd.read_excel(file_path)
+        df1 = Main_Functions.adjust_session_numbers(df)
+        df["Session No."] = df1[['Adjusted Session No.']]
+        refined_df = df[['Paper ID', 'Session No.', 'Paper Title', 'Overall Category', 'Topic', 'Authors', 'Country']]
+        final_df = refined_df.sort_values('Session No.')
 
-        # Create in-memory Excel file
-        output = io.BytesIO()
-        df.to_excel(output, engine='openpyxl', index=False)  # Write to in-memory Excel file, no index
-        output.seek(0)
 
-        # Set HTTP headers for download
+        excel_content = Main_Functions.write_to_excel(final_df, llm_selection)  # Get Excel bytes
+
         headers = {
-            'Content-Disposition': 'attachment; filename="processed_data.xlsx"',
+            'Content-Disposition': f'attachment; filename="processed_data_{llm_selection}.xlsx"',  # Dynamic filename
             'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         }
 
         return send_file(
-            output,
+            io.BytesIO(excel_content),  # Send the bytes using BytesIO
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             as_attachment=True,
-            download_name='processed_data.xlsx'  # Or make this dynamic
+            download_name=f'processed_data_{llm_selection}.xlsx'  # Dynamic filename
         )
+
     except Exception as e:
-        print(f"Error in download route: {e}")
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 

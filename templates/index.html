@@ -78,22 +78,42 @@
                 });
         }
         function processData() {
-            fetch('/process', { method: 'POST' }) // Correct URL and method
+            fetch('/process', { method: 'POST' })
                 .then(response => {
-                    if (!response.ok) {  // Check for HTTP errors (status codes not 200-299)
-                        return response.json().then(err => {throw new Error(err.error)}); // Throw error with message
+                    if (!response.ok) {
+                        return response.json().then(err => {throw new Error(err.error)});
                     }
-                    return response.json(); // If response is ok, parse the json
+                    return response.json();
                 })
                 .then(data => {
                     document.getElementById('processingStatus').textContent = data.message;
                     if (data.status === 'success') {
-                        document.getElementById('downloadLink').style.display = 'block';
+                        // Create a hidden form and submit it to trigger download
+                        const form = document.createElement('form');
+                        form.action = '/download';
+                        form.method = 'POST';
+
+                        const filePathInput = document.createElement('input');
+                        filePathInput.type = 'hidden';
+                        filePathInput.name = 'file_path';
+                        filePathInput.value = data.file_path;
+                        form.appendChild(filePathInput);
+
+                        const llmSelectionInput = document.createElement('input');
+                        llmSelectionInput.type = 'hidden';
+                        llmSelectionInput.name = 'llm_selection';
+                        llmSelectionInput.value = data.llm_selection;
+                        form.appendChild(llmSelectionInput);
+
+                        document.body.appendChild(form); // Add to the DOM (required for form submission)
+                        form.submit(); // Submit the form to trigger the download
+
+                        document.body.removeChild(form); // Remove the form after submission
                     }
                 })
-                .catch(error => { // Catch any errors, including HTTP errors
-                    console.error("Error processing data:", error); // Log the error to the console
-                    document.getElementById('processingStatus').textContent = error.message; // Display the error message
+                .catch(error => {
+                    console.error("Error processing data:", error);
+                    document.getElementById('processingStatus').textContent = error.message;
                 });
         }
     </script>

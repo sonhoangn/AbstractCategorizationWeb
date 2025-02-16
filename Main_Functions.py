@@ -1,6 +1,7 @@
 import datetime
 import os
 import time
+import io
 import webbrowser
 from collections import defaultdict
 from pathlib import Path
@@ -242,30 +243,23 @@ def input_from_spreadsheet(file_path, model, llm_selection):
 def write_to_excel(df_results, file_path, llm):
     columns_to_save = ['Paper ID', 'Session No.', 'Paper Title', 'Overall Category', 'Topic', 'Authors', 'Country']
     df_final = df_results[columns_to_save]
-    # Save data frame results to a new spreadsheet
-    outputpath = RESULTS_PATH / file_path
-    os.makedirs(outputpath, exist_ok=True)
-    output_file = RESULTS_PATH / file_path.replace(".xlsx", f"_processed_{llm}.xlsx")
 
-    with pd.ExcelWriter(output_file, mode='w') as writer:
-        df_final.to_excel(writer, sheet_name='Processed')
-    print(f"{ct()} - Results are saved to {output_file}\n")
-    return output_file
+    output = io.BytesIO()  # Create in-memory file
+    df_final.to_excel(output, engine='openpyxl', index=False)
+    output.seek(0)
+
+    return output.getvalue()  # Return the byte content of the Excel file
 
 # Write results to spreadsheet and display
 def write_to_excel_display(df_results, file_path, llm):
     columns_to_save = ['Paper ID', 'Session No.', 'Paper Title', 'Overall Category', 'Topic', 'Authors', 'Country']
     df_final = df_results[columns_to_save]
-    # Save data frame results to a new spreadsheet
-    outputpath = RESULTS_PATH / file_path
-    os.makedirs(outputpath, exist_ok=True)
-    output_file = RESULTS_PATH / file_path.replace(".xlsx", f"_processed_{llm}.xlsx")
 
-    with pd.ExcelWriter(output_file, mode='w') as writer:
-        df_final.to_excel(writer, sheet_name='Processed')
-    print(f"{ct()} - Results are saved to {output_file}\n")
-    browser_display(df_final, llm)
-    return output_file
+    output = io.BytesIO()  # Create in-memory file
+    df_final.to_excel(output, engine='openpyxl', index=False)
+    output.seek(0)
+
+    return output.getvalue()  # Return the byte content of the Excel file
 
 def unexpected_characters(text):
     return text.replace('\u01b0', 'L')
