@@ -78,8 +78,9 @@ def process_data():
         html_content = Main_Functions.browser_display(final_df, llm_selection)  # Get HTML string
         return render_template_string(html_content)
     except Exception as e:
-        traceback.print_exc() # Print the traceback for debugging
-        return jsonify({'error': str(e)}), 500
+        traceback.print_exc()  # Print the full traceback to the logs
+        print(f"Error in /process: {e}")  # Additional logging
+        return jsonify({'error': str(e)}), 500  # Return the error in JSON format
 
 @app.route('/download', methods=['POST'])  # Use POST for sending file path in body
 def download_file():
