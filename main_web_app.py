@@ -66,7 +66,7 @@ def process_data():
         if df_results is None:
             return jsonify({'error': 'Error during processing'}), 500
 
-        new_df_path = Main_Functions.write_to_excel(df_r, file_path, llm_selection)
+        new_df_path = Main_Functions.write_to_excel(df_r, llm_selection)
         new_df = pd.read_excel(new_df_path)
         df1 = Main_Functions.adjust_session_numbers(new_df)
         df1["Session No."] = df1[['Adjusted Session No.']]

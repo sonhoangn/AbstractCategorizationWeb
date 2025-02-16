@@ -367,7 +367,7 @@ def main(file_path, llm_selection, API_KEY):
             df1 = adjust_session_numbers(new_df)
             df1["Session No."] = df1[['Adjusted Session No.']]
             final_df = df1.sort_values('Session No.')
-            final_df_path = write_to_excel_display(final_df, llm_selection)
+            final_df_path = write_to_excel_display(final_df, file_path, llm_selection)
             print(f"{ct()} - Final results save to {final_df_path}\n")
             return
 
