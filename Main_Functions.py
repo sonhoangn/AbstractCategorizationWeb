@@ -1,7 +1,6 @@
 import datetime
 import os
 import time
-import io
 import webbrowser
 from collections import defaultdict
 from pathlib import Path
@@ -9,6 +8,7 @@ import traceback
 import google.generativeai as genai
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor
+import io  # Import io for in-memory file handling
 
 # Define output path and check whether output path already existed in the target directory
 RESULTS_PATH = Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "results")))
@@ -240,15 +240,14 @@ def input_from_spreadsheet(file_path, model, llm_selection):
 
 
 # Write results to spreadsheet
-def write_to_excel(df_results, file_path, llm):
+def write_to_excel(df_results, llm): # Removed file_path argument
     columns_to_save = ['Paper ID', 'Session No.', 'Paper Title', 'Overall Category', 'Topic', 'Authors', 'Country']
     df_final = df_results[columns_to_save]
 
-    output = io.BytesIO()  # Create in-memory file
-    df_final.to_excel(output, engine='openpyxl', index=False)
-    output.seek(0)
+    output = io.BytesIO()  # In-memory file
+    df_final.to_excel(output, engine='openpyxl', index=False) # Write to in-memory file
 
-    return output.getvalue()  # Return the byte content of the Excel file
+    return output.getvalue()  # Return the Excel file content as bytes
 
 # Write results to spreadsheet and display
 def write_to_excel_display(df_results, file_path, llm):
@@ -268,17 +267,7 @@ def unexpected_characters(text):
 def browser_display(df_final, llm):
     print(f"{ct()} - Converting result spreadsheet to readable html format.\n")
     html_table = unexpected_characters(df_final).to_html(index=False)
-    return html_table
-    # output_path = RESULTS_PATH / f"Sessions_schedule_{llm}.html"
-    #
-    # with open(output_path, "w", encoding="utf-8") as f:
-    #     f.write(html_table)
-    #
-    # try:
-    #     webbrowser.open(output_path)
-    #     print(f"{ct()} - DataFrame displayed in browser: {output_path}\n")
-    # except Exception as e:
-    #     print(f"{ct()} - Error opening HTML file in browser: {e}\n")
+    return html_table  # Return the HTML string
 
 def main(file_path, llm_selection, API_KEY):
     print(f"{ct()} - Working Directory (Main_Functions): {os.getcwd()}!\n")

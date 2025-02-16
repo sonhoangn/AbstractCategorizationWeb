@@ -2,7 +2,6 @@
 <html>
 <head>
     <title>Automated Conference Decision-Making Systems</title>
-<!--    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">-->
 </head>
 <body>
     <h1>Automated Conference Decision-Making Systems</h1>
@@ -29,16 +28,8 @@
     <div id="processingStatus"></div>
 
     <div id="downloadLink" style="display: none;">
-        <form action="/download" method="POST">
-            <input type="hidden" name="file_path" id="file_path_input">
-            <button type="submit">Download Excel File</button>
-        </form>
+        <button onclick="downloadFile()">Download Excel File</button>
     </div>
-
-<!--    <button onclick="refineData()">Refine Sessions</button>-->
-<!--    <div id="refineStatus"></div>-->
-
-<!--    <textarea id="terminal" rows="10" cols="80"></textarea>-->
 
     <script>
         function uploadFile() {
@@ -53,6 +44,7 @@
                     document.getElementById('fileStatus').textContent = data.message;
                 });
         }
+
         function setLLM() {
             const llm = document.getElementById('llmSelect').value;
             fetch('/set_llm', {
@@ -65,6 +57,7 @@
                     document.getElementById('llmStatus').textContent = data.message;
                 });
         }
+
         function setAPIKey() {
             const apiKey = document.getElementById('apiKeyInput').value;
             fetch('/set_api_key', {
@@ -77,6 +70,7 @@
                     document.getElementById('apiKeyStatus').textContent = data.message;
                 });
         }
+
         function processData() {
             fetch('/process', { method: 'POST' })
                 .then(response => {
@@ -88,16 +82,34 @@
                 .then(data => {
                     document.getElementById('processingStatus').textContent = data.message;
                     if (data.status === 'success') {
-                        // Create a hidden form and submit it to trigger download
+                        document.getElementById('downloadLink').style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error("Error processing data:", error);
+                    document.getElementById('processingStatus').textContent = error.message;
+                });
+        }
+
+        function downloadFile() {
+            fetch('/process', { method: 'POST' }) // Call /process again to get the temp file path
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => {throw new Error(err.error)});
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === 'success') {
                         const form = document.createElement('form');
                         form.action = '/download';
                         form.method = 'POST';
 
-                        const filePathInput = document.createElement('input');
-                        filePathInput.type = 'hidden';
-                        filePathInput.name = 'file_path';
-                        filePathInput.value = data.file_path;
-                        form.appendChild(filePathInput);
+                        const tempFilePathInput = document.createElement('input');
+                        tempFilePathInput.type = 'hidden';
+                        tempFilePathInput.name = 'temp_file_path';
+                        tempFilePathInput.value = data.temp_file_path;
+                        form.appendChild(tempFilePathInput);
 
                         const llmSelectionInput = document.createElement('input');
                         llmSelectionInput.type = 'hidden';
@@ -105,15 +117,13 @@
                         llmSelectionInput.value = data.llm_selection;
                         form.appendChild(llmSelectionInput);
 
-                        document.body.appendChild(form); // Add to the DOM (required for form submission)
-                        form.submit(); // Submit the form to trigger the download
-
-                        document.body.removeChild(form); // Remove the form after submission
+                        document.body.appendChild(form);
+                        form.submit();
+                        document.body.removeChild(form);
                     }
                 })
                 .catch(error => {
-                    console.error("Error processing data:", error);
-                    document.getElementById('processingStatus').textContent = error.message;
+                    console.error("Error triggering download:", error);
                 });
         }
     </script>
