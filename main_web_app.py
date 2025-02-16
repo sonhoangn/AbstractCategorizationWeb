@@ -72,9 +72,15 @@ def process_data():
         df1["Session No."] = df1[['Adjusted Session No.']]
         final_df = df1.sort_values('Session No.')
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.xlsx', delete=False, dir=app.config['UPLOAD_FOLDER']) as tmp_file:
+        with tempfile.NamedTemporaryFile(mode='wb', suffix='.xlsx', delete=False,
+                                         dir=app.config['UPLOAD_FOLDER']) as tmp_file:  # Binary mode if needed
             temp_file_path = tmp_file.name
-            final_df.to_excel(tmp_file, engine='openpyxl', index=False)
+
+            excel_buffer = io.BytesIO()
+            final_df.to_excel(excel_buffer, engine='openpyxl', index=False)
+            excel_buffer.seek(0)
+
+            tmp_file.write(excel_buffer.getvalue())  # Write the bytes to the temporary file
 
         return jsonify({'message': 'Processing complete', 'temp_file_path': temp_file_path, 'llm_selection': llm_selection, 'status': 'success'}), 200
 
