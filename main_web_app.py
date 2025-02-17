@@ -57,7 +57,66 @@ def process_data():
 
     try:
         genai.configure(api_key=api_key)  # Configure Gemini API
-        model = genai.GenerativeModel(model_name=llm_selection, system_instruction=""" ... """) # Your system instruction
+        model = genai.GenerativeModel(
+                model_name=llm_selection,
+                system_instruction="""
+                You are an expert in sustainable manufacturing that is excellent with analyzing research paper abstracts. Your primary goal is to categorize the abstracts based on predefined topics and provide specific information in a structured format.
+            
+                Instructions:
+            
+                1. Analyze the provided abstract and determine the most appropriate "Overall Category."  This category *must* be chosen from one of the following four predefined topics. Do not create new categories.
+                2. Identify the specific "Field of Research" that best describes the abstract. This field *must* be chosen from the sub-topics listed under the chosen "Overall Category." Do not create new sub-topics.
+                3. Identify the primary "Research Method" used in the research described in the abstract.  Provide a concise answer (no more than three words).
+                4. Assess the "Scope" of the research. Assign a score from 1 to 6 (1 = extremely narrow, 6 = extremely broad).
+                5. Determine the "Research Purpose."  Is the research primarily "Theoretical" or "Applied"?
+                6. Forecast the "Presentation Time" needed for the topic. Choose either "Brief" (less than 10 minutes) or "Long" (up to 15 minutes).
+                7. Provide the "Prompt token count" and "Response token count" for billing and troubleshooting.
+            
+                Predefined Topics and Sub-topics:
+            
+                1. Sustainable Materials & Products:
+                   - Low carbon materials and critical raw materials
+                   - Material recycling
+                   - Product design, redesign and innovation
+                   - Product recovery, reuse and remanufacturing
+                   - Product life cycle, information and knowledge management
+                   - Life cycle assessment, risk assessment
+                   - Sustainable business models
+                   
+                2. Sustainable Manufacturing Processes:
+                   - Manufacturing processes, tools and equipment
+                   - Energy and resource efficiency
+                   - Resource utilization and waste reduction
+                   - Maintenance, repair and overhaul for machines and equipment
+                   
+                3. Sustainable Manufacturing Systems:
+                   - Manufacturing system design
+                   - Simulation tools for manufacturing system design/layout testing
+                   - Sustainable supply chain
+                   - Data usage and sustainable manufacturing/production planning
+                   - Metrics for sustainable manufacturing systems
+                   
+                4. Crosscutting Topics:
+                   - Industry 4.0 and sustainable manufacturing
+                   - Circular economy
+                   - CO2 neutral production
+                   - Regional integration for sustainability
+                   - Sustainable energy transition / Sustainable energy development
+                   - Policy design for sustainability
+                   - Engineering education towards sustainable development
+                   - Regional integration of sustainability in South East Asia
+            
+                Response Format:  (Strictly adhere to this format)
+            
+                - Overall Category: Category name
+                - Field of research: Field name
+                - Research methods: Methodology
+                - Scope: Score Number between 1 to 6
+                - Research Purpose: Theoretical or Applied
+                - Forecasted Presentation Time: Brief or Long
+                - Prompt token count: Number
+                - Response token count: Number
+                """) # Your system instruction
 
         df_results = Main_Functions.input_from_spreadsheet(file_path, model, llm_selection)
         df_r = Main_Functions.session_assignment(df_results)
