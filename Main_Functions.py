@@ -21,59 +21,79 @@ def ct():
     return crtm.strftime("%Y-%m-%d %H:%M:%S")
 
 # Define method to categorize abstract
-def categorize_abstract(index, abstract, model):
-    # Setting up prompt
-    prompt = f"""
-    Paper index:
-    {index}
-    Abstract:
-    {abstract}
-    """
-    # Configure generative ai response
-    response = model.generate_content(prompt)
-    print(f"{ct()} - Response for Abstract No. {index} provided. Analyzing...\n")
-    # Find the best fit overall category name from the response
-    line1 = [line for line in response.text.split("\n") if line.startswith("- Overall Category: ")]
-    if line1:
-        overall_category = line1[0].split(": ")[1].strip()
-    else:
-        overall_category = "N/A"
-    # Find the best fit topic name from the response
-    line2 = [line for line in response.text.split("\n") if line.startswith("- Field of research: ")]
-    if line2:
-        research_field = line2[0].split(": ")[1].strip()
-    else:
-        research_field = "N/A"
-    # Find the best fit research method name from the response
-    line3 = [line for line in response.text.split("\n") if line.startswith("- Research methods: ")]
-    if line3:
-        research_method = line3[0].split(": ")[1].strip()
-    else:
-        research_method = "N/A"
-    # Define Scope level
-    line4 = [line for line in response.text.split("\n") if line.startswith("- Scope: ")]
-    if line4:
-        scope = line4[0].split(": ")[1].strip()
-    else:
-        scope = "N/A"
-    # Distinguish whether the target paper is a theoretical or applied one
-    line5 = [line for line in response.text.split("\n") if line.startswith("- Research Purpose: ")]
-    if line5:
-        purpose = line5[0].split(": ")[1].strip()
-    else:
-        purpose = "N/A"
-    # Forecast presentation duration needed for the abstract
-    line6 = [line for line in response.text.split("\n") if line.startswith("- Forecasted Presentation Time: ")]
-    if line6:
-        forecasted_time = line6[0].split(": ")[1].strip()
-    else:
-        forecasted_time = "N/A"
-    # Get token count
-    prompt_tokens = str(model.count_tokens(prompt)).split(": ")[1].strip()
-    response_tokens = str(model.count_tokens(response.text)).split(": ")[1].strip()
-    # Return values from method
-    print(f"{ct()} - Abstract No. {index} finishes preliminary categorization...\n")
-    return overall_category, research_field, research_method, scope, purpose, forecasted_time, prompt_tokens, response_tokens
+def categorize_abstract(index, abstract, model, max_retries=3, initial_delay=6):
+    retries = 0
+    delay = initial_delay
+    while retries < max_retries:
+        try:
+            # Setting up prompt
+            prompt = f"""
+            Paper index:
+            {index}
+            Abstract:
+            {abstract}
+            """
+            # Configure generative ai response
+            response = model.generate_content(prompt)
+            print(f"{ct()} - Response for Abstract No. {index} provided. Analyzing...\n")
+            # Find the best fit overall category name from the response
+            line1 = [line for line in response.text.split("\n") if line.startswith("- Overall Category: ")]
+            if line1:
+                overall_category = line1[0].split(": ")[1].strip()
+            else:
+                overall_category = "N/A"
+            # Find the best fit topic name from the response
+            line2 = [line for line in response.text.split("\n") if line.startswith("- Field of research: ")]
+            if line2:
+                research_field = line2[0].split(": ")[1].strip()
+            else:
+                research_field = "N/A"
+            # Find the best fit research method name from the response
+            line3 = [line for line in response.text.split("\n") if line.startswith("- Research methods: ")]
+            if line3:
+                research_method = line3[0].split(": ")[1].strip()
+            else:
+                research_method = "N/A"
+            # Define Scope level
+            line4 = [line for line in response.text.split("\n") if line.startswith("- Scope: ")]
+            if line4:
+                scope = line4[0].split(": ")[1].strip()
+            else:
+                scope = "N/A"
+            # Distinguish whether the target paper is a theoretical or applied one
+            line5 = [line for line in response.text.split("\n") if line.startswith("- Research Purpose: ")]
+            if line5:
+                purpose = line5[0].split(": ")[1].strip()
+            else:
+                purpose = "N/A"
+            # Forecast presentation duration needed for the abstract
+            line6 = [line for line in response.text.split("\n") if line.startswith("- Forecasted Presentation Time: ")]
+            if line6:
+                forecasted_time = line6[0].split(": ")[1].strip()
+            else:
+                forecasted_time = "N/A"
+            # Get token count
+            prompt_tokens = str(model.count_tokens(prompt)).split(": ")[1].strip()
+            response_tokens = str(model.count_tokens(response.text)).split(": ")[1].strip()
+            # Return values from method
+            print(f"{ct()} - Abstract No. {index} finishes preliminary categorization...\n")
+            return overall_category, research_field, research_method, scope, purpose, forecasted_time, prompt_tokens, response_tokens
+        except Exception as e:
+            if "Rate limit" in str(e) or "Quota" in str(e) or "429" in str(e):  # Check for rate limit related errors
+                retries += 1
+                if retries < max_retries:
+                    print(f"{ct()} - Rate limit hit for Abstract {index}. Retrying in {delay} seconds...")
+                    time.sleep(delay)
+                    delay *= 2  # Exponential backoff (double the delay)
+                else:
+                    print(f"{ct()} - Rate limit hit for Abstract {index}. Max retries exceeded.")
+                    return "Rate Limit Exceeded", "Rate Limit Exceeded", "Rate Limit Exceeded", "Rate Limit Exceeded", "Rate Limit Exceeded", "Rate Limit Exceeded", 0, 0  # Return error values
+            else:  # If it is not a rate limit error, raise the exception immediately
+                print(f"{ct()} - An unexpected error occurred: {e}")
+                traceback.print_exc()
+                raise  # Re-raise the exception for other errors
+
+    return "Rate Limit Exceeded", "Rate Limit Exceeded", "Rate Limit Exceeded", "Rate Limit Exceeded", "Rate Limit Exceeded", "Rate Limit Exceeded", 0, 0  # Return error values if max retries are exceeded
 
 # Session Assignment
 def session_assignment(df):
@@ -212,7 +232,7 @@ def input_from_spreadsheet(file_path, model, llm_selection):
         print(f"{ct()} - Unable to locate abstracts list.\n")
         return None
     # Start prompting for each abstract
-    with ThreadPoolExecutor(max_workers=4) as executor:  # Adjust max_workers as needed
+    with ThreadPoolExecutor(max_workers=2) as executor:  # Adjust max_workers as needed
         futures = [executor.submit(categorize_abstract, index, abstract, model) for index, abstract in df.iterrows()]
 
         for future, (index, abstract) in zip(futures, df.iterrows()):
